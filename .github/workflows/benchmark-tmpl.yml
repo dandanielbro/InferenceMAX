@@ -65,7 +65,7 @@ env:
 
 jobs:
   benchmark:
-    runs-on: ${{ inputs.runner }}
+    runs-on: [self-hosted]
     timeout-minutes: 180
     name: '${{ inputs.exp-name }} ${{ inputs.runner }} ${{ inputs.precision }} tp=${{ inputs.tp }} ep=${{ inputs.ep }} dpa=${{ inputs.dp-attn }} conc=${{ inputs.conc }}'
     steps:
