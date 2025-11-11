@@ -9,18 +9,12 @@ gptoss-fp4-h100-vllm:
   - isl: 1024
     osl: 1024
     search-space:
-    - { tp: 2, conc-start: 4, conc-end: 64 }
-    - { tp: 4, conc-start: 4, conc-end: 64 }
-    - { tp: 8, conc-start: 4, conc-end: 64 }
+    - { tp: 1, conc-start: 4, conc-end: 64 }
   - isl: 1024
     osl: 8192
     search-space:
-    - { tp: 2, conc-start: 4, conc-end: 64 }
-    - { tp: 4, conc-start: 4, conc-end: 64 }
-    - { tp: 8, conc-start: 4, conc-end: 64 }
+    - { tp: 1, conc-start: 4, conc-end: 64 }
   - isl: 8192
     osl: 1024
     search-space:
-    - { tp: 2, conc-start: 4, conc-end: 64 }
-    - { tp: 4, conc-start: 4, conc-end: 64 }
-    - { tp: 8, conc-start: 4, conc-end: 16 }
+    - { tp: 1, conc-start: 4, conc-end: 64 }
