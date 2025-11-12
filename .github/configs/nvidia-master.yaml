@@ -229,7 +229,7 @@ gptoss-fp4-b200-vllm:
 
 gptoss-fp4-h100-vllm:
   image: vllm/vllm-openai:v0.11.0
-  model: openai/gpt-oss-120b
+  model: openai/gpt-oss-20b
   model-prefix: gptoss
   runner: h100
   precision: fp4
@@ -238,21 +238,24 @@ gptoss-fp4-h100-vllm:
   - isl: 1024
     osl: 1024
     search-space:
-    - { tp: 2, conc-start: 4, conc-end: 64 }
-    - { tp: 4, conc-start: 4, conc-end: 64 }
-    - { tp: 8, conc-start: 4, conc-end: 64 }
+    - { tp: 1, conc-start: 4, conc-end: 64 }
+    # - { tp: 2, conc-start: 4, conc-end: 64 }
+    # - { tp: 4, conc-start: 4, conc-end: 64 }
+    # - { tp: 8, conc-start: 4, conc-end: 64 }
   - isl: 1024
     osl: 8192
     search-space:
-    - { tp: 2, conc-start: 4, conc-end: 64 }
-    - { tp: 4, conc-start: 4, conc-end: 64 }
-    - { tp: 8, conc-start: 4, conc-end: 64 }
+    - { tp: 1, conc-start: 4, conc-end: 64 }
+    # - { tp: 2, conc-start: 4, conc-end: 64 }
+    # - { tp: 4, conc-start: 4, conc-end: 64 }
+    # - { tp: 8, conc-start: 4, conc-end: 64 }
   - isl: 8192
     osl: 1024
     search-space:
-    - { tp: 2, conc-start: 4, conc-end: 64 }
-    - { tp: 4, conc-start: 4, conc-end: 64 }
-    - { tp: 8, conc-start: 4, conc-end: 16 }
+    - { tp: 1, conc-start: 4, conc-end: 64 }
+    # - { tp: 2, conc-start: 4, conc-end: 64 }
+    # - { tp: 4, conc-start: 4, conc-end: 64 }
+    # - { tp: 8, conc-start: 4, conc-end: 16 }
 
 gptoss-fp4-h200-trt:
   image: nvcr.io#nvidia/tensorrt-llm/release:gpt-oss-dev
