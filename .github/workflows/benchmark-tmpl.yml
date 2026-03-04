@@ -89,7 +89,8 @@ permissions:
 
 jobs:
   benchmark:
-    runs-on: ${{ inputs.runner }}
+    # runs-on: ${{ inputs.runner }}
+    runs-on: [self-hosted]
     timeout-minutes: 300
     name: "${{ inputs.exp-name }} ${{ inputs.precision }} ${{ inputs.runner }} ${{ inputs.framework }} | tp=${{ inputs.tp }} ep=${{ inputs.ep }} dpa=${{ inputs.dp-attn }} | disagg-${{ inputs.disagg }} spec-${{ inputs.spec-decoding }} conc-${{ inputs.conc }}${{ inputs.run-eval && ' | eval' || '' }}"
     steps:
