@@ -147,46 +147,47 @@ PY
     fi
 
 else
-
+    # --- 1. 環境變數設定 ---
     export HF_HUB_CACHE_MOUNT="/var/lib/hf-hub-cache/"
     export PORT_OFFSET=${RUNNER_NAME: -1}
     export PORT=$(( 8888 + ${PORT_OFFSET} ))
+    
     FRAMEWORK_SUFFIX=$([[ "$FRAMEWORK" == "atom" ]] && printf '_atom' || printf '')
     SPEC_SUFFIX=$([[ "$SPEC_DECODING" == "mtp" ]] && printf '_mtp' || printf '')
 
-    PARTITION="compute"
-    SQUASH_FILE="/var/lib/squash/$(echo "$IMAGE" | sed 's/[\/:@#]/_/g').sqsh"
-
     set -x
-    salloc --partition=$PARTITION --gres=gpu:$TP --cpus-per-task=128 --time=180 --no-shell --job-name="$RUNNER_NAME"
-    JOB_ID=$(squeue --name="$RUNNER_NAME" -h -o %A | head -n1)
 
-    srun --jobid=$JOB_ID bash -c "docker stop \$(docker ps -a -q)"
+    # --- 2. 清理舊容器 ---
+    # 直接執行 docker 指令，不再透過 srun
+    echo "Cleaning up existing containers..."
+    docker stop $(docker ps -a -q) 2>/dev/null || true
 
-    if [[ "$FRAMEWORK" == "atom" ]]; then
-        srun --jobid=$JOB_ID bash -c "rm $SQUASH_FILE"
-    fi
+    # --- 3. 確保映像檔存在 ---
+    # Enroot 的 import 換成 docker pull
+    echo "Ensuring image $IMAGE is present..."
+    docker pull "$IMAGE"
 
-    srun --jobid=$JOB_ID bash -c "enroot import -o $SQUASH_FILE docker://$IMAGE"
-    if ! srun --jobid=$JOB_ID bash -c "unsquashfs -l $SQUASH_FILE > /dev/null"; then
-        echo "unsquashfs failed, removing $SQUASH_FILE and re-importing..."
-        srun --jobid=$JOB_ID bash -c "rm -f $SQUASH_FILE"
-        srun --jobid=$JOB_ID bash -c "enroot import -o $SQUASH_FILE docker://$IMAGE"
-    fi
-
-    srun --jobid=$JOB_ID \
-        --container-image=$SQUASH_FILE \
-        --container-mounts=$GITHUB_WORKSPACE:/workspace/,$HF_HUB_CACHE_MOUNT:$HF_HUB_CACHE \
-        --container-mount-home \
-        --container-writable \
-        --container-workdir=/workspace/ \
-        --no-container-entrypoint --export=ALL \
+    # --- 4. 執行 Docker 容器測試 ---
+    # 這裡替換掉原有的 srun --container-image ...
+    # 針對 MI355X (AMD GPU)，必須掛載 /dev/kfd 和 /dev/dri
+    docker run --rm \
+        --name "inference_test_${RUNNER_NAME}" \
+        --device=/dev/kfd --device=/dev/dri \
+        --security-opt seccomp=unconfined \
+        --group-add video \
+        --ipc=host \
+        --shm-size=64g \
+        -v "$GITHUB_WORKSPACE":/workspace/ \
+        -v "$HF_HUB_CACHE_MOUNT":"$HF_HUB_CACHE" \
+        -w /workspace/ \
+        -e HF_TOKEN="$HF_TOKEN" \
+        -e RESULT_FILENAME="$RESULT_FILENAME" \
+        "$IMAGE" \
         bash benchmarks/single_node/${EXP_NAME%%_*}_${PRECISION}_mi355x${FRAMEWORK_SUFFIX}${SPEC_SUFFIX}.sh
 
-    scancel $JOB_ID
-
+    # --- 5. 清理殘留檔案 ---
     if ls gpucore.* 1> /dev/null 2>&1; then
-        echo "gpucore files exist. not good"
+        echo "gpucore files exist. removing..."
         rm -f gpucore.*
     fi
 fi
