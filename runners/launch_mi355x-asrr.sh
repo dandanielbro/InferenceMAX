@@ -170,8 +170,10 @@ else
     # --- 4. 執行 Docker 容器測試 ---
     # 這裡替換掉原有的 srun --container-image ...
     # 針對 MI355X (AMD GPU)，必須掛載 /dev/kfd 和 /dev/dri
+    # 修改後的 docker run 指令
     docker run --rm \
         --name "inference_test_${RUNNER_NAME}" \
+        --entrypoint "" \
         --device=/dev/kfd --device=/dev/dri \
         --security-opt seccomp=unconfined \
         --group-add video \
